@@ -21,14 +21,14 @@
     group: "{{ ler53_cert_files_group }}"
     mode: "{{ ler53_cert_files_mode }}"
   tags:
-  - openssl
+    - openssl
 
 - name: check consistency of private key
   openssl_privatekey_info:
     path: "{{ ler53_cert_dir }}/{{ ler53_key_file_name }}"
   register: result_privatekey
   tags:
-  - openssl
+    - openssl
 
 - name: generate the CSR
   openssl_csr:
@@ -43,14 +43,14 @@
     mode: "{{ ler53_cert_files_mode }}"
   register: generate_csr
   tags:
-  - openssl
+    - openssl
 
 - name: check consistency of the CSR key
   openssl_csr_info:
     path: "{{ ler53_cert_dir }}/{{ ler53_csr_file_name }}"
   register: result_csr
   tags:
-  - openssl
+    - openssl
 
 - name: generate the Let's Encrypt account key
   openssl_privatekey:
@@ -60,14 +60,14 @@
     group: "{{ ler53_cert_files_group }}"
     mode: "{{ ler53_cert_files_mode }}"
   tags:
-  - openssl
+    - openssl
 
 - name: check consistency of the account key
   openssl_privatekey_info:
     path: "{{ ler53_account_key_dir }}/{{ ler53_account_key_file_name }}"
   register: result_accountkey
   tags:
-  - openssl
+    - openssl
 
 - name: delete existing certificate
   file:
@@ -75,7 +75,7 @@
     state: absent
   when: generate_csr.changed and ler53_new_cert_when_csr_changes
   tags:
-  - openssl
+    - openssl
 
 - name: initiate the Let's Encrypt challenge
   acme_certificate:
@@ -87,7 +87,7 @@
     dest: "{{ ler53_cert_dir }}/{{ ler53_cert_file_name }}"
     account_email: "{{ ler53_account_email }}"
     remaining_days: "{{ ler53_cert_remaining_days_before_renewal }}"
-    terms_agreed: yes
+    terms_agreed: true
   register: lets_encrypt_challenge
 
 - name: create the DNS records for the challenge
@@ -100,8 +100,8 @@
     value: "\"{{ ler53_item.value['dns-01']['resource_value'] }}\""
     aws_access_key: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
     aws_secret_key: "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
-    overwrite: yes
-    wait: yes
+    overwrite: true
+    wait: true
   with_dict: "{{ lets_encrypt_challenge['challenge_data'] | default({}) }}"
   loop_control:
     loop_var: ler53_item

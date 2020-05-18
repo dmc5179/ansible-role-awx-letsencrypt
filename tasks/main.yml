@@ -6,5 +6,5 @@
 - name: "Generate Certificates"
   import_tasks: certificate.yml
 
-#- name: "Configure AXW with new Certificate"
-#  import_tasks: awx.yml
+- name: "Configure AXW with new Certificate"
+  import_tasks: awx.yml
