@@ -1,2 +1,9 @@
 ---
 # handlers file for ansible-role-awx-letsencrypt
+- name: handle services
+  service:
+    name: "{{ ler53_item.name }}"
+    state: "{{ ler53_item.state }}"
+  with_items: "{{ ler53_service_handlers }}"
+  loop_control:
+    loop_var: ler53_item

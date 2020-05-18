@@ -1,83 +1,10 @@
 ---
 # tasks file for ansible-role-awx-letsencrypt
+- name: "Install and Setup Dependencies"
+  import_tasks: setup.yml
 
-- name: Install the Python openssl module
-  become: true
-  yum:
-    name: python3-pyOpenSSL
-    state: present
+- name: "Generate Certificates"
+  import_tasks: certificate.yml
 
-- name: Backup the existing nginx config
-  become: true
-  copy:
-    src: '/etc/nginx/nginx.conf'
-    dest: '/etc/nginx/nginx.conf.back'
-    owner: 'root'
-    group: 'root'
-    mode: '0644'
-    remote_src: true
-  when: (backup | bool)
-
-- name: Backup the existing tower cert
-  become: true
-  copy:
-    src: '/etc/tower/tower.cert'
-    dest: '/etc/tower/tower.cert.back'
-    owner: 'root'
-    group: "{{ awx_group }}"
-    mode: '0644'
-    remote_src: true
-  when: (backup | bool)
-
-- name: Backup the existing tower key
-  become: true
-  copy:
-    src: '/etc/tower/tower.key'
-    dest: '/etc/tower/tower.key.back'
-    owner: 'root'
-    group: "{{ awx_group }}"
-    mode: '0644'
-    remote_src: true
-  when: (backup | bool)
-
-
-#- name: Prepare directory for certificates
-#  file:
-#    path: "{{lets_encrypt_directories_certs}}"
-#    state: directory
-
-#- name: Create the Lets Encrypt signing key and the resource wide keys
-#  openssl_privatekey:
-#    path: "{{lets_encrypt_directories_certs}}/{{item}}"
-#  with_items:
-#    - letsencrypt.pem
-#    - private_key.pem
-
-#- name: Create the certificate signing request
-#  openssl_csr:
-#    path: "{{lets_encrypt_directories_certs}}/request.pem"
-#    privatekey_path: "{{lets_encrypt_directories_certs}}/private_key.pem"
-#    common_name: "{{lets_encrypt_hostname}}"
-
-#- name: Make the request of the Lets Encrypt API
-#  acme_certificate:
-#    account_key_src: "{{lets_encrypt_directories_certs}}/letsencrypt.pem"
-#    acme_directory: "{{ lets_encrypt_endpoint }}"
-#    acme_version: "{{ acme_version }}"
-#    agreement: "{{lets_encrypt_agreement}}"
-#    challenge: "http-01"
-#    csr: "{{lets_encrypt_directories_certs}}/request.pem"
-#    dest: "{{lets_encrypt_directories_certs}}/cert.pem"
-#    terms_agreed: true
-#  register: acme_data
-
-#- set_fact:
-#    lets_encrypt_certificate_invalidated: false
-
-#- name: Set whether needs update (cert {{acme_data.cert_days}} days)
-#  set_fact:
-#    lets_encrypt_certificate_invalidated: true
-#  when: acme_data.challenge_data is not undefined
-
-#- include: certificate.yml
-#  when: (lets_encrypt_certificate_invalidated | bool | default(false))
+#- name: "Configure AXW with new Certificate"
+#  import_tasks: awx.yml

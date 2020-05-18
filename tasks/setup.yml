@@ -1,0 +1,38 @@
+---
+- name: Install the Python dependencies
+  yum:
+    name:
+      - python3-pyOpenSSL
+      - python3-pip
+      - python3-virtualenv
+      - gcc
+      - python3-devel
+      - openssl-devel
+      - libffi-devel
+    state: present
+
+- name: install pyOpenSSL and boto in a virtualenv
+  pip:
+    name: "{{ ler53_item.name }}"
+    state: "{{ ler53_item.state | default(omit) }}"
+    version: "{{ ler53_item.version | default(omit) }}"
+    virtualenv: "{{ ler53_account_key_dir }}/ansible-lets-encrypt-virtualenv"
+    # This is required for libselinux-python
+    virtualenv_site_packages: yes
+    virtualenv_python: '/usr/bin/python3'
+  with_items:
+  # Update setuptools
+  - name: setuptools
+    state: latest
+  - name: pyOpenSSL
+    version: 17.5.0
+  - name: boto
+  - name: enum34
+  - name: ipaddress
+  - name: cffi
+  loop_control:
+    loop_var: ler53_item
+
+- name: use the created virtualenv
+  set_fact:
+    ansible_python_interpreter: "{{ ler53_account_key_dir }}/ansible-lets-encrypt-virtualenv/bin/python"

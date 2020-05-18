@@ -1,0 +1,48 @@
+---
+
+- name: Backup the existing nginx config
+  become: true
+  copy:
+    src: '/etc/nginx/nginx.conf'
+    dest: '/etc/nginx/nginx.conf.back'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    remote_src: true
+  when: (backup | bool)
+
+- name: Backup the existing tower cert
+  become: true
+  copy:
+    src: '/etc/tower/tower.cert'
+    dest: '/etc/tower/tower.cert.back'
+    owner: 'root'
+    group: "{{ awx_group }}"
+    mode: '0644'
+    remote_src: true
+  when: (backup | bool)
+  ignore_errors: true
+
+- name: Remove existing tower cert
+  become: true
+  file:
+    path: '/etc/tower/tower.cert'
+    state: absent
+
+- name: Backup the existing tower key
+  become: true
+  copy:
+    src: '/etc/tower/tower.key'
+    dest: '/etc/tower/tower.key.back'
+    owner: 'root'
+    group: "{{ awx_group }}"
+    mode: '0644'
+    remote_src: true
+  when: (backup | bool)
+  ignore_errors: true
+
+- name: Remove existing tower key
+  become: true
+  file:
+    path: '/etc/tower/tower.key'
+    state: absent
