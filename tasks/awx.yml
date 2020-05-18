@@ -46,3 +46,61 @@
   file:
     path: '/etc/tower/tower.key'
     state: absent
+
+- name: Copy pem bundle to tower certificate location
+  copy:
+    src: "/etc/ssl/{{ ler53_cert_common_name }}/{{ ler53_cert_common_name }}.key"
+    remote_src: true
+    dest: "/etc/tower/{{ ler53_cert_common_name }}.key"
+    owner: root
+    group: "{{ awx_group }}"
+    mode: 0640
+
+- name: Copy key to tower certificate location
+  copy:
+    src: "/etc/ssl/{{ ler53_cert_common_name }}/{{ ler53_cert_common_name }}.pem"
+    remote_src: true
+    dest: "/etc/tower/{{ ler53_cert_common_name }}.pem"
+    owner: root
+    group: "{{ awx_group }}"
+    mode: 0640
+
+- name: Stop services
+  service:
+    name: "{{ item }}"
+    state: stopped
+  with_items:
+    - rabbitmq-server.service
+    - nginx.service
+    - supervisord.service
+
+- name: Update nginx configuration file with new certificate
+  command:
+    warn: false
+    argv:
+      - sed
+      - -i
+      - "s|ssl_certificate .*|ssl_certificate /etc/tower/{{ ler53_cert_common_name }}.pem;|"
+      - '/etc/nginx/nginx.conf'
+  tags:
+    - nginx
+
+- name: Update nginx configuration file with new key
+  command:
+    warn: false
+    argv:
+      - sed
+      - -i
+      - "s|ssl_certificate_key .*|ssl_certificate_key /etc/tower/{{ ler53_cert_common_name }}.key;|"
+      - '/etc/nginx/nginx.conf'
+  tags:
+    - nginx
+
+- name: Start services
+  service:
+    name: "{{ item }}"
+    state: started
+  with_items:
+    - rabbitmq-server.service
+    - nginx.service
+    - supervisord.service
